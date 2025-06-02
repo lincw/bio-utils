@@ -197,6 +197,53 @@ enrichment_results <- perform_go_enrichment(gene_list, background)
 - Use semantic versioning tags when available
 - Document which version of bio-utils was used in your analysis
 
+### Working with Git Tags in Submodules
+
+To use a specific tagged version of bio-utils in your project:
+
+```bash
+# Navigate to the submodule directory
+cd tools/bio-utils
+
+# Fetch all tags from remote
+git fetch --tags
+
+# List available tags
+git tag -l
+
+# Checkout a specific tag (e.g., v1.0.0)
+git checkout tags/v1.0.0
+
+# Or in a single command
+git -C tools/bio-utils checkout $(git -C tools/bio-utils describe --tags $(git -C tools/bio-utils rev-list --tags --max-count=1))
+
+# Return to parent directory and commit the submodule state
+cd ../..
+git add tools/bio-utils
+git commit -m "Pin bio-utils to version v1.0.0"
+```
+
+To update to the latest tag:
+
+```bash
+# Navigate to the submodule
+cd tools/bio-utils
+
+# Fetch all tags and updates
+git fetch --all --tags
+
+# Get the latest tag name
+LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+
+# Checkout the latest tag
+git checkout $LATEST_TAG
+
+# Return to parent directory and commit the update
+cd ../..
+git add tools/bio-utils
+git commit -m "Update bio-utils to latest version $LATEST_TAG"
+```
+
 ### Path Management
 - Use relative paths when referencing submodule contents
 - Set up environment variables for commonly used tool paths
