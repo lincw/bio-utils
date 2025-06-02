@@ -1,4 +1,4 @@
-# Reusable Data Analysis Tools
+# Bio-Utils
 
 A collection of portable and reusable data analysis utilities designed for bioinformatics research, with a focus on protein interaction network analysis and transcriptomics integration.
 
@@ -8,15 +8,14 @@ This repository contains modular analysis tools that can be easily integrated in
 
 ## Project Structure
 
-```
-reusable-data-analysis-tools/
-├── python/                 # Python utilities and modules
-├── R/                      # R functions and scripts
-├── utils/                  # Cross-platform utilities and configurations
-├── docs/                   # Documentation and usage examples
-├── README.md               # This file
-└── LICENSE                 # License information
-```
+## Directory Structure
+
+- [python/](python) - Python utilities and modules
+- [R/](R) - R functions and scripts
+- [utils/](utils) - Cross-platform utilities and configurations
+- [docs/](docs) - Documentation and integration guides
+- [README.md](README.md) - This file
+- [LICENSE](LICENSE) - License information
 
 ## Design Principles
 
@@ -35,23 +34,17 @@ reusable-data-analysis-tools/
 - Multi-omics data integration
 - Statistical analysis and visualization
 
-## Usage
+## Integration
 
-Each tool directory contains:
-- Standalone functions/modules
-- Documentation with usage examples
-- Parameter specifications
-- Expected input/output formats
+For instructions on how to integrate bio-utils into your projects using Git submodules or sparse-checkout, see the [integration documentation](docs/integration_guide.md).
 
-## Requirements
+Quick start:
+```bash
+# Add as submodule
+git submodule add https://github.com/username/bio-utils.git tools
 
-### Python
-- Python 3.8+
-- Common packages: pandas, numpy, networkx, scipy, matplotlib, seaborn
-
-### R
-- R 4.0+
-- Common packages: tidyverse, igraph, Biostrings, DESeq2, clusterProfiler
+# Or see docs/quick_reference.md for more options
+```
 
 ## Contributing
 
@@ -62,15 +55,13 @@ When adding new tools:
 4. Follow consistent naming conventions
 5. Test with different input formats
 
-## Version Control
-
-- Use semantic versioning for releases
-- Tag stable versions
-- Maintain changelog for significant updates
-
 ## Date Format
 
 All date outputs use YYYY-MM-DD format consistently across tools.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

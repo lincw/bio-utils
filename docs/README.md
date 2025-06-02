@@ -1,8 +1,13 @@
 # Documentation
 
-This directory contains comprehensive documentation for all analysis tools.
+This directory contains comprehensive documentation for all analysis tools and integration guides.
 
-## Structure
+## Integration Documentation
+
+- [`integration_guide.md`](integration_guide.md) - Complete guide for integrating bio-utils into projects using Git submodules and sparse-checkout
+- [`quick_reference.md`](quick_reference.md) - Fast commands and common patterns for project integration
+
+## Tool Documentation Structure
 
 - `user_guides/` - Step-by-step usage guides
 - `api_reference/` - Detailed function/method documentation  
