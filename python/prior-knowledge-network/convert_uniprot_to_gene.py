@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # script: convert_uniprot_to_gene.py
 # date_created: 2025-06-23T11:02:41+02:00
-# date_modified: 2025-06-23T12:23:18+02:00
+# date_modified: 2025-06-23T12:39:11+02:00
 
 """
 UniProt ID to Gene Symbol Converter
@@ -52,7 +52,7 @@ class UniProtConverter:
     # Regular expression to match UniProt IDs
     UNIPROT_ID_PATTERN = re.compile(r'^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}$')
     
-    def __init__(self, organism="mouse", verbose=False):
+    def __init__(self, organism="mouse", taxonomy_id=None, verbose=False):
         """
         Initialize the converter.
         
@@ -61,7 +61,8 @@ class UniProtConverter:
             verbose: Whether to enable verbose logging
         """
         self.organism = organism.lower()
-        self.taxonomy_id = self._get_taxonomy_id(self.organism)
+        # Use provided taxonomy ID if given, else fetch dynamically
+        self.taxonomy_id = taxonomy_id or self._get_taxonomy_id(self.organism)
         self.verbose = verbose
         
         if not self.taxonomy_id:
@@ -92,29 +93,6 @@ class UniProtConverter:
         Raises:
             ValueError: If the organism cannot be found or if there's an API error
         """
-        # Common taxonomy IDs for frequently used organisms
-        common_taxonomy_ids = {
-            "human": "9606",
-            "mouse": "10090",
-            "rat": "10116",
-            "fly": "7227",
-            "worm": "6239",
-            "yeast": "559292",
-            "zebrafish": "7955",
-            "chicken": "9031",
-            "cow": "9913",
-            "dog": "9615",
-            "pig": "9823"
-        }
-        
-        # Check if the organism is in our common list
-        organism_lower = organism.lower()
-        if organism_lower in common_taxonomy_ids:
-            taxonomy_id = common_taxonomy_ids[organism_lower]
-            logger.info(f"Using known taxonomy ID for {organism}: {taxonomy_id}")
-            return taxonomy_id
-        
-        # If not in common list, try to look it up using UniProt's taxonomy API
         try:
             # Query the UniProt taxonomy API with more specific parameters
             url = "https://rest.uniprot.org/taxonomy/search"
@@ -377,43 +355,6 @@ class UniProtConverter:
             
         return gene_df, both_df
 
-
-def list_available_organisms():
-    """List common organisms supported by the converter."""
-    print("Common organisms supported by the converter:")
-    print("The converter supports any organism name that can be found in UniProt's taxonomy database.")
-    print("\nThe script will dynamically look up the taxonomy ID for your organism using the UniProt API.")
-    print("This requires an active internet connection when running the script.")
-    print("\nHere are some common examples of organism names you can use:")
-    
-    # Common model organisms with their scientific names
-    common_organisms = [
-        ("human", "Homo sapiens"),
-        ("mouse", "Mus musculus"),
-        ("rat", "Rattus norvegicus"),
-        ("fly", "Drosophila melanogaster"),
-        ("worm", "Caenorhabditis elegans"),
-        ("yeast", "Saccharomyces cerevisiae"),
-        ("zebrafish", "Danio rerio"),
-        ("chicken", "Gallus gallus"),
-        ("cow", "Bos taurus"),
-        ("dog", "Canis familiaris"),
-        ("pig", "Sus scrofa")
-    ]
-    
-    # Display the organisms without requiring API connectivity
-    for common_name, scientific_name in common_organisms:
-        print(f"- {common_name} ({scientific_name})")
-    
-    print("\nYou can use any organism name that UniProt recognizes, not just those listed above.")
-    print("For example: 'arabidopsis', 'c.elegans', 'e.coli', etc.")
-    print("\nWhen running the conversion, the script will automatically look up the correct taxonomy ID.")
-    print("If the API connection fails, the script will exit with an error message.")
-    print("Please ensure you have a working internet connection when running this script.")
-    print("\nUsage example:")
-    print("  python convert_uniprot_to_gene.py convert input.csv -g mouse -o output.csv")
-
-
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Convert UniProt IDs to gene symbols in interaction files")
@@ -422,7 +363,7 @@ def parse_arguments():
     parent_parser = argparse.ArgumentParser(add_help=False)
     parent_parser.add_argument("-g", "--organism", default="mouse", help="Organism name (default: mouse)")
     parent_parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
-    parent_parser.add_argument("-l", "--list-organisms", action="store_true", help="List available organisms and exit")
+    
     
     # Add subparsers for different modes
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
@@ -433,16 +374,10 @@ def parse_arguments():
     convert_parser.add_argument("-o", "--output-file", help="Path to the output CSV file with gene symbols")
     convert_parser.add_argument("-k", "--keep-both", action="store_true", help="Keep both UniProt IDs and gene symbols in output")
     convert_parser.add_argument("-b", "--batch-size", type=int, default=50, help="Batch size for API requests (default: 50)")
-    
-    # List organisms command
-    list_parser = subparsers.add_parser("list", parents=[parent_parser], help="List available organisms")
+    convert_parser.add_argument("-t", "--taxonomy-id", help="NCBI taxonomy ID to use directly (skips lookup)")
     
     # Parse arguments
     args = parser.parse_args()
-    
-    # If no command is specified but --list-organisms is set, use the list command
-    if not args.command and args.list_organisms:
-        args.command = "list"
     
     # If no command is specified, default to convert
     if not args.command:
@@ -455,12 +390,6 @@ def main():
     """Main function."""
     args = parse_arguments()
     
-    # Check if we should just list organisms and exit
-    if args.command == "list" or args.list_organisms:
-        list_available_organisms()
-        return
-    
-    # We're in convert mode
     # Determine the output file path if not provided
     if not args.output_file:
         # Simply add _genesymbols before the extension
@@ -504,7 +433,7 @@ def main():
     # Initialize the converter
     try:
         logger.info(f"Initializing UniProt converter for organism: {args.organism}")
-        converter = UniProtConverter(organism=args.organism, verbose=args.verbose)
+        converter = UniProtConverter(organism=args.organism, taxonomy_id=args.taxonomy_id, verbose=args.verbose)
         logger.info(f"Successfully initialized converter with taxonomy ID: {converter.taxonomy_id}")
     except ValueError as e:
         logger.error(f"Error initializing converter: {e}")
